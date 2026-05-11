@@ -30,7 +30,8 @@ class TodoApp:
         self.tree.configure(yscrollcommand=sb.set)
 
         btns = ttk.Frame(self.root, padding=5)
-        btns.pack(fill="x")        for txt, cmd in [("➕ Add", self._add), ("✏️ Edit", self._edit), ("✅ Toggle", self._toggle), ("🗑️ Delete", self._delete), ("🔄 Refresh", self.refresh)]:
+        btns.pack(fill="x")
+        for txt, cmd in [("➕ Add", self._add), ("✏️ Edit", self._edit), ("✅ Toggle", self._toggle), ("🗑️ Delete", self._delete), ("🔄 Refresh", self.refresh)]:
             ttk.Button(btns, text=txt, command=cmd).pack(side="left", padx=5)
 
     def refresh(self):

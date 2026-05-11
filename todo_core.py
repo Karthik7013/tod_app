@@ -4,7 +4,6 @@ This file remains untouched when building SDK, CLI, or GUI.
 """
 
 import sqlite3
-import os
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 from typing import Optional, List, Dict, Any
@@ -48,6 +47,9 @@ class TodoRepository:
         try:
             yield conn
             conn.commit()
+        except TodoError:
+            conn.rollback()
+            raise
         except Exception as e:
             conn.rollback()
             raise TodoDatabaseError(f"DB error: {e}") from e

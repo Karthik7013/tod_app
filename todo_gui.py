@@ -45,7 +45,7 @@ class TodoApp:
         if not sel:
             messagebox.showwarning("Selection", "Select a todo first.")
             return None
-        return self.tree.item(sel[0], "values")[0]
+        return int(self.tree.item(sel[0], "values")[0])
 
     def _handle_sdk(self, func, *args, **kwargs):
         try:
@@ -67,8 +67,8 @@ class TodoApp:
         nt = simpledialog.askstring("Edit", "Title:", initialvalue=todo["title"])
         if nt is None: return
         nd = simpledialog.askstring("Edit", "Description:", initialvalue=todo["description"])
+        if nd is None: return
         self._handle_sdk(self.sdk.update, tid, title=nt, description=nd)
-
     def _toggle(self):
         tid = self._get_selected_id()
         if not tid: return

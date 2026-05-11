@@ -39,7 +39,7 @@ class TodoSDK:
             try:
                 t = self.add(item["title"], item.get("description", ""))
                 if item.get("completed"):
-                    self.update(t["id"], completed=True)
+                    t = self.update(t["id"], completed=True)
                 imported.append(t)
             except Exception as e:
                 print(f"⚠️ Skip import for '{item.get('title', '')}': {e}")

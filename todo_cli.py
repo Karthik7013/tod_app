@@ -1,7 +1,8 @@
 import argparse
+import json
 import sys
+
 import httpx
-from typing import Optional
 
 DEFAULT_URL = "http://127.0.0.1:8000"
 
@@ -104,22 +105,17 @@ def main():
                 resp = client.get("/todos")
                 if not resp.is_success:
                     api_error(resp)
-                import json
                 with open(args.filepath, "w") as f:
                     json.dump(resp.json(), f, indent=2)
                 print(f"💾 Exported to {args.filepath}")
 
             case "import":
-                import json
                 with open(args.filepath, "r") as f:
                     data = json.load(f)
-                imported = 0
-                for item in data:
-                    resp = client.post("/todos", json={"title": item["title"], "description": item.get("description", "")})
-                    if resp.is_success and item.get("completed"):
-                        client.put(f"/todos/{resp.json()['id']}", json={"completed": True})
-                    if resp.is_success:
-                        imported += 1
+                resp = client.post("/todos/batch", json=data)
+                if not resp.is_success:
+                    api_error(resp)
+                imported = len(resp.json())
                 print(f"📥 Imported {imported} todos")
 
     except httpx.ConnectError:

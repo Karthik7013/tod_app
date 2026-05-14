@@ -113,7 +113,7 @@ class TodoRepository:
             cur = conn.execute(f"UPDATE todos SET {set_clause} WHERE id = ?", values)
             if cur.rowcount == 0:
                 raise TodoNotFoundError(f"Todo #{todo_id} not found")
-            return self.get_by_id(todo_id)
+        return self.get_by_id(todo_id)
 
     def delete(self, todo_id: int) -> None:
         with self._get_connection() as conn:

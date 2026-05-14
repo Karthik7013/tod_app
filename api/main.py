@@ -1,13 +1,24 @@
-from fastapi import FastAPI, HTTPException, Query
+import os
 from typing import Optional
 
-from todo_core import TodoAPI, TodoNotFoundError, TodoValidationError
-from api.models import TodoCreate, TodoUpdate, TodoResponse
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
+from todo_sdk import TodoSDK
+from todo_core import TodoNotFoundError, TodoValidationError
+from api.models import TodoCreate, TodoUpdate, TodoResponse
 
 app = FastAPI(title="Todo API", version="1.0.0")
 
-api = TodoAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+sdk = TodoSDK(db_path=os.environ.get("TODO_DB_PATH", "todos.db"))
 
 
 @app.get("/health")
@@ -17,24 +28,32 @@ def health():
 
 @app.get("/todos", response_model=list[TodoResponse])
 def list_todos(completed: Optional[bool] = Query(None)):
-    todos = api.list_todos(completed_only=completed)
-    return [TodoResponse(**t.to_dict()) for t in todos]
+    return [TodoResponse(**t) for t in sdk.list(completed_only=completed)]
 
 
 @app.post("/todos", response_model=TodoResponse, status_code=201)
 def create_todo(data: TodoCreate):
     try:
-        todo = api.create_todo(data.title, data.description)
-        return TodoResponse(**todo.to_dict())
+        return TodoResponse(**sdk.add(data.title, data.description))
     except TodoValidationError as e:
         raise HTTPException(400, str(e))
+
+
+@app.post("/todos/batch", response_model=list[TodoResponse], status_code=201)
+def batch_create_todos(data: list[TodoCreate]):
+    results = []
+    for item in data:
+        try:
+            results.append(TodoResponse(**sdk.add(item.title, item.description)))
+        except TodoValidationError:
+            pass
+    return results
 
 
 @app.get("/todos/{todo_id}", response_model=TodoResponse)
 def get_todo(todo_id: int):
     try:
-        todo = api.get_todo(todo_id)
-        return TodoResponse(**todo.to_dict())
+        return TodoResponse(**sdk.get(todo_id))
     except TodoNotFoundError as e:
         raise HTTPException(404, str(e))
 
@@ -44,9 +63,8 @@ def update_todo(todo_id: int, data: TodoUpdate):
     try:
         updates = {k: v for k, v in data.model_dump().items() if v is not None}
         if not updates:
-            return api.get_todo(todo_id)
-        todo = api.update_todo(todo_id, **updates)
-        return TodoResponse(**todo.to_dict())
+            return TodoResponse(**sdk.get(todo_id))
+        return TodoResponse(**sdk.update(todo_id, **updates))
     except TodoNotFoundError as e:
         raise HTTPException(404, str(e))
     except TodoValidationError as e:
@@ -56,7 +74,7 @@ def update_todo(todo_id: int, data: TodoUpdate):
 @app.delete("/todos/{todo_id}", status_code=204)
 def delete_todo(todo_id: int):
     try:
-        api.delete_todo(todo_id)
+        sdk.delete(todo_id)
     except TodoNotFoundError as e:
         raise HTTPException(404, str(e))
 

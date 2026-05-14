@@ -1,16 +1,30 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
 class TodoCreate(BaseModel):
-    title: str = Field(..., min_length=1, strip_whitespace=True)
+    title: str = Field(..., min_length=1)
     description: str = ""
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def strip_title(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
 
 
 class TodoUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, strip_whitespace=True)
+    title: Optional[str] = Field(None, min_length=1)
     description: Optional[str] = None
     completed: Optional[bool] = None
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def strip_title(cls, v):
+        if isinstance(v, str):
+            return v.strip()
+        return v
 
 
 class TodoResponse(BaseModel):

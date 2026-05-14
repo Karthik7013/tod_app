@@ -92,7 +92,11 @@ class TodoApp:
         tid = self._get_selected_id()
         if not tid:
             return
-        todo = self._request("GET", f"/todos/{tid}")
+        try:
+            todo = self._request("GET", f"/todos/{tid}")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+            return
         nt = simpledialog.askstring("Edit", "Title:", initialvalue=todo["title"])
         if nt is None:
             return
@@ -105,7 +109,11 @@ class TodoApp:
         tid = self._get_selected_id()
         if not tid:
             return
-        todo = self._request("GET", f"/todos/{tid}")
+        try:
+            todo = self._request("GET", f"/todos/{tid}")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+            return
         self._handle(
             lambda: self._request("PUT", f"/todos/{tid}", json={"completed": not todo["completed"]})
         )

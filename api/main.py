@@ -34,17 +34,26 @@ def list_todos(completed: Optional[bool] = Query(None)):
 @app.post("/todos", response_model=TodoResponse, status_code=201)
 def create_todo(data: TodoCreate):
     try:
-        return TodoResponse(**sdk.add(data.title, data.description))
+        todo = sdk.add(data.title, data.description)
+        if data.completed:
+            todo = sdk.update(todo["id"], completed=True)
+        return TodoResponse(**todo)
     except TodoValidationError as e:
         raise HTTPException(400, str(e))
 
 
 @app.post("/todos/batch", response_model=list[TodoResponse], status_code=201)
-def batch_create_todos(data: list[TodoCreate]):
+def batch_create_todos(data: list[dict]):
     results = []
     for item in data:
+        title = item.get("title", "")
+        if not title or not title.strip():
+            continue
         try:
-            results.append(TodoResponse(**sdk.add(item.title, item.description)))
+            todo = sdk.add(title.strip(), item.get("description", ""))
+            if item.get("completed"):
+                todo = sdk.update(todo["id"], completed=True)
+            results.append(TodoResponse(**todo))
         except TodoValidationError:
             pass
     return results

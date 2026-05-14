@@ -5,6 +5,7 @@ from typing import Optional
 class TodoCreate(BaseModel):
     title: str = Field(..., min_length=1)
     description: str = ""
+    completed: bool = False
 
     @field_validator("title", mode="before")
     @classmethod

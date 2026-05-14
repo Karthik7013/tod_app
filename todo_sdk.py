@@ -41,6 +41,6 @@ class TodoSDK:
                 if item.get("completed"):
                     t = self.update(t["id"], completed=True)
                 imported.append(t)
-            except Exception as e:
+            except (TodoValidationError, KeyError, OSError) as e:
                 print(f"⚠️ Skip import for '{item.get('title', '')}': {e}")
         return imported

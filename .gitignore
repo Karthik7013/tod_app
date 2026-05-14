@@ -13,7 +13,6 @@ __pycache__/
 .idea/
 
 # Build artifacts
-=4.8.0
 
 # Virtual environment
 venv/

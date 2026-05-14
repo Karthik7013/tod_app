@@ -42,9 +42,9 @@ class TodoRepository:
     @contextmanager
     def _get_connection(self):
         conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL;")
         try:
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA journal_mode=WAL;")
             yield conn
             conn.commit()
         except TodoError:
